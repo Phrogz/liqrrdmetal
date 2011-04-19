@@ -129,9 +129,52 @@ module LiqrrdMetal
 		def to_json(*a); { t:@text, m:!!@match }.to_json(*a); end
 	end
 
+	# Mixed into results for results_by_score
+	module MatchResult
+		# The text used to match against
+		attr_accessor :liqrrd_match
+
+		# The score for this result
+		attr_accessor :liqrrd_score
+
+		# Array of MatchPart instances
+		attr_accessor :liqrrd_parts
+	end
+
 	module_function
 
-	# Match a single search term agains an array of possible results,
+	# Match a single search term against an array of objects,
+	# using the supplied block to find the string to match against,
+	# receiving an array of your objects with the MatchResult module mixed in.
+	#
+	#  User = Struct.new :name, :email, :id
+	#  users = [ User.new( "Gavin Kistner",   "!@phrogz.net",          42 ),
+	#            User.new( "David Letterman", "lateshow@pipeline.com", 17 ),
+	#            User.new( "Scott Adams",     "scottadams@aol.com",    82 ) ]
+	#  
+	#  scom = LiqrrdMetal.results_by_score( "s.com", users ){ |user| user.email }
+	#  #=> [#<struct User name="Scott Adams", email="scottadams@aol.com", id=82>,
+	#  #=>  #<struct User name="David Letterman", email="lateshow@pipeline.com", id=17>]
+	#  
+	#  p scom.map{ |user| user.liqrrd_score }
+	#  #=> [0.7222222222222222, 0.7619047619047619]
+	#  
+	#  p scom.map{ |user| user.liqrrd_parts.map(&:to_html).join }
+	#  #=> ["<span class='match'>s</span>cottadams@aol<span class='match'>.com</span>",
+	#  #=>  "late<span class='match'>s</span>how@pipeline<span class='match'>.com</span>"]
+	def results_by_score( search, objects, score_threshold=1.0 )
+		objects.each{ |o|
+			o.extend MatchResult
+			o.liqrrd_match = yield(o)
+			o.liqrrd_score, o.liqrrd_parts = score_with_parts(search,o.liqrrd_match)
+		}.select{ |o|
+			o.liqrrd_score < score_threshold
+		}.sort_by{ |o|
+			[ o.liqrrd_score, o.liqrrd_match ]
+		}
+	end
+
+	# Match a single search term against an array of possible results,
 	# receiving an array sorted by score (descending) of the matched text parts.
 	# By default non-matching entries are not included in the results; set the
 	# `score_threshold` below 0.0 to include them.
@@ -210,7 +253,7 @@ module LiqrrdMetal
 		started = false
 		scanner = StringScanner.new actual
 		search.chars.each do |c|
-			return NO_MATCH unless fluff = scanner.scan_until(/#{c}/i)
+			return NO_MATCH unless fluff = scanner.scan_until(/#{Regexp.escape c}/i)
 			pos = scanner.pos-1
 			started = true if pos == 0
 			if /\s/ =~ actual[pos-1]
@@ -228,3 +271,5 @@ module LiqrrdMetal
 		scores
 	end
 end
+
+

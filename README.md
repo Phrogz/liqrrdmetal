@@ -77,6 +77,28 @@ You can also specify the threshold for the `parts_by_score` method:
 
     good_hits = LiqrrdMetal.parts_by_score( "re", various_filenames, 0.3 )
 
+Finally, you probably have additional information you want to go along with each string,
+such as a database row id or tooltip you want to display along with it. For this, pass a block
+to `results_by_score` that accepts one of the objects in your array and returns the string to
+filter against:
+
+    User = Struct.new :name, :email, :id
+    users = [ User.new( "Gavin Kistner",   "!@phrogz.net",          42 ),
+              User.new( "David Letterman", "lateshow@pipeline.com", 17 ),
+              User.new( "Scott Adams",     "scottadams@aol.com",    82 ) ]
+    
+    scom = LiqrrdMetal.results_by_score( "s.com", users ){ |user| user.email }
+    #=> [#<struct User name="Scott Adams", email="scottadams@aol.com", id=82>,
+    #=>  #<struct User name="David Letterman", email="lateshow@pipeline.com", id=17>]
+    
+    p scom.map{ |user| user.liqrrd_score }
+    #=> [0.7222222222222222, 0.7619047619047619]
+    
+    p scom.map{ |user| user.liqrrd_parts.map(&:to_html).join }
+    #=> ["<span class='match'>s</span>cottadams@aol<span class='match'>.com</span>",
+    #=>  "late<span class='match'>s</span>how@pipeline<span class='match'>.com</span>"]
+
+
 
 ## License & Contact
 

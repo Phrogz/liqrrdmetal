@@ -80,7 +80,7 @@ require 'strscan'
 # 
 # Copyright (c) 2011, Gavin Kistner (!@phrogz.net)
 module LiqrrdMetal
-	VERSION = 0.5
+	VERSION = "0.5.1"
 
   # If you want score_with_parts to be accurate, the MATCH score must be unique
 	MATCH                =  0.00  #:nodoc:

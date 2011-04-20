@@ -20,5 +20,6 @@
         irb> puts LiqrrdMetal.score_with_parts( "low", "Follow" ).last.map(&:to_html).join
         #=> Fo<span class='match'>l</span>l<span class='match'>ow</span>
 
-  Perhaps try (horror of horrors) creating n variations, splitting into smaller and smaller chunks, before ending
-  at `/(e).*?(a).*?(c).*?(h).*?(l).*?(e).*?(t).*?(t).*?(e).*?(r)/i`?
+  * Perhaps try (horror of horrors) creating n variations, splitting into smaller and smaller chunks?
+
+            `/(eachletter)|(each).*?(letter)|...|(e).*?(a).*?(c).*?(h).*?(l).*?(e).*?(t).*?(t).*?(e).*?(r)/i`

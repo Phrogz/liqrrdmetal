@@ -14,18 +14,18 @@ require 'strscan'
 # 
 # Starting with the basics, here is how to find the score for a possible match:
 # 
-#  score = LiqqrdMetal.score( "re", "regards.txt" )
+#  score = LiqrrdMetal.score( "re", "regards.txt" )
 #  #=> 0.082
 #     
-#  score = LiqqrdMetal.score( "re", "preview.jpg" )
+#  score = LiqrrdMetal.score( "re", "preview.jpg" )
 #  #=> 0.236
 # 
-#  score = LiqqrdMetal.score( "re", "no" )
+#  score = LiqrrdMetal.score( "re", "no" )
 #  #=> 1.0
 # 
 # Want to know which letters were matched?
 # 
-#  score,parts = LiqqrdMetal.score_with_parts( "re", "Preview.jpg" )
+#  score,parts = LiqrrdMetal.score_with_parts( "re", "Preview.jpg" )
 #  puts "%.02f" % score
 #  #=> 0.24
 # 
@@ -80,7 +80,7 @@ require 'strscan'
 # 
 # Copyright (c) 2011, Gavin Kistner (!@phrogz.net)
 module LiqrrdMetal
-	VERSION = "0.6"
+	VERSION = "0.6.1"
 
   # If you want score_with_parts to be accurate, the MATCH score must be unique
 	MATCH                =  0.00  #:nodoc:
@@ -109,13 +109,13 @@ module LiqrrdMetal
 		def to_s;     @text;  end
 
 		# The text wrapped by the HTML <code>\&lt;span class='match'\&gt;...\&lt;/span\&gt;</code> (only wrapped if it was a match)
-		#  score,parts = LiqqrdMetal.score_with_parts( "re", "Preview.jpg" )
+		#  score,parts = LiqrrdMetal.score_with_parts( "re", "Preview.jpg" )
 		#  puts parts.map(&:to_html).join
 		#  #=> P<span class='match'>re</span>view.jpg
 		def to_html;  @match ? "<span class='match'>#{@text}</span>" : @text; end
 
 		# The text wrapped with underscores (only wrapped if it was a match)
-		#  score,parts = LiqqrdMetal.score_with_parts( "re", "Preview.jpg" )
+		#  score,parts = LiqrrdMetal.score_with_parts( "re", "Preview.jpg" )
 		#  puts parts.map(&:to_ascii).join
 		#  #=> P_re_view.jpg
 		def to_ascii; @match ? "_#{@text}_" : text; end
@@ -123,7 +123,7 @@ module LiqrrdMetal
 		# Get this part as a terse JSON[http://json.org] payload suitable
 		# for transmitting over the wire.
 		#  require 'json'
-		#  score,parts = LiqqrdMetal.score_with_parts( "re", "Preview.jpg" )
+		#  score,parts = LiqrrdMetal.score_with_parts( "re", "Preview.jpg" )
 		#  puts parts.to_json
 		#  #=> [{"t":"P","m":false},{"t":"re","m":true},{"t":"view.jpg","m":false}]
 

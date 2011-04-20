@@ -1,4 +1,4 @@
-## About LiqqrdMetal
+## About LiqrrdMetal
 
 Derived from the [LiquidMetal](https://github.com/rmm5t/liquidmetal)
 JavaScript library, LiqrrdMetal brings substring scoring to Ruby.
@@ -14,18 +14,18 @@ a score of 0.0 indicates a perfect match, while a score of 1.0 indicates no matc
 
 Starting with the basics, here is how to find the score for a possible match:
 
-    score = LiqqrdMetal.score( "re", "regards.txt" )
+    score = LiqrrdMetal.score( "re", "regards.txt" )
     #=> 0.082
     
-    score = LiqqrdMetal.score( "re", "preview.jpg" )
+    score = LiqrrdMetal.score( "re", "preview.jpg" )
     #=> 0.236
 
-    score = LiqqrdMetal.score( "re", "no" )
+    score = LiqrrdMetal.score( "re", "no" )
     #=> 1.0
 
 Want to know which letters were matched?
 
-    score,parts = LiqqrdMetal.score_with_parts( "re", "Preview.jpg" )
+    score,parts = LiqrrdMetal.score_with_parts( "re", "Preview.jpg" )
     puts "%.02f" % score
     #=> 0.24
 

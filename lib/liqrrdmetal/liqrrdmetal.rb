@@ -80,7 +80,7 @@ require 'strscan'
 # 
 # Copyright (c) 2011, Gavin Kistner (!@phrogz.net)
 module LiqrrdMetal
-	VERSION = "0.5.2"
+	VERSION = "0.6"
 
   # If you want score_with_parts to be accurate, the MATCH score must be unique
 	MATCH                =  0.00  #:nodoc:
@@ -148,6 +148,8 @@ module LiqrrdMetal
 	# using the supplied block to find the string to match against,
 	# receiving an array of your objects with the MatchResult module mixed in.
 	#
+	# Non-matching entries (score of 1.0) will never be included in the results, no matter the value of score_threshold
+	#
 	#  User = Struct.new :name, :email, :id
 	#  users = [ User.new( "Gavin Kistner",   "!@phrogz.net",          42 ),
 	#            User.new( "David Letterman", "lateshow@pipeline.com", 17 ),
@@ -183,8 +185,8 @@ module LiqrrdMetal
 
 	# Match a single search term against an array of possible results,
 	# receiving an array sorted by score (descending) of the matched text parts.
-	# By default non-matching entries are not included in the results; set the
-	# `score_threshold` below 0.0 to include them.
+	#
+	# Non-matching entries (score of 1.0) will never be included in the results, no matter the value of score_threshold
 	#
 	#  items = ["FooBar","Foo Bar","For the Love of Big Cars"]
 	#  hits  = LiqrrdMetal.parts_by_score( "foobar", items )
@@ -225,7 +227,7 @@ module LiqrrdMetal
 		elsif (search.length > actual.length) || (search !~ re)
 			[ NO_MATCH[0], [MatchPart.new(actual)] ]
 		else
-			values = scores( search, actual )
+			values = letter_scores( search, actual )
 			score  = values.inject{ |sum,score| sum+score } / values.length
 			was_matching,start = nil
 			parts = []
@@ -241,6 +243,24 @@ module LiqrrdMetal
 			[ score, parts ]
 		end
 	end
+	
+	# Returns an array of score/string tuples, sorted by score, below the <code>score_threshold</code>
+	#
+	# Non-matching entries (score of 1.0) will never be included in the results, no matter the value of <code>score_threshold</code>
+	def sorted_with_scores( search, actuals, score_threshold=1.0 )
+		if search.length==0
+			[]
+		else
+			re = RE_CACHE[search] ||= /#{[*search.chars].join('.*?')}/i			
+			actuals.map{ |actual|
+				if actual=~re
+					values = letter_scores( search, actual )
+					score = values.inject{ |sum,score| sum+score } / values.length					
+					[score,actual] if score < score_threshold
+				end
+			}.compact.sort
+		end
+	end
 
 	# Return a score for matching the search term against the actual text.
 	# A score of <code>1.0</code> indicates no match. A score of <code>0.0</code> is a perfect match.
@@ -251,14 +271,14 @@ module LiqrrdMetal
 		elsif (search.length > actual.length) || (search !~ re)
 			NO_MATCH[0]
 		else
-			values = scores( search, actual )
+			values = letter_scores( search, actual )
 			values.inject{ |sum,score| sum+score } / values.length
 		end
 	end
 
 	# Return an aray of scores for each letter in the actual text.
 	# Returns a single-value array of <code>[0.0]</code> if no match exists.
-	def scores( search, actual )
+	def letter_scores( search, actual )
 		actual_length = actual.length
 		scores = Array.new(actual_length)
 

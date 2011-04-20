@@ -22,4 +22,4 @@
 
   * Perhaps try (horror of horrors) creating n variations, splitting into smaller and smaller chunks?
 
-            `/(eachletter)|(each).*?(letter)|...|(e).*?(a).*?(c).*?(h).*?(l).*?(e).*?(t).*?(t).*?(e).*?(r)/i`
+            /(eachletter)|(each).*?(letter)|...|(e).*?(a).*?(c).*?(h).*?(l).*?(e).*?(t).*?(t).*?(e).*?(r)/i

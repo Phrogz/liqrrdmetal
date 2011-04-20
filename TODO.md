@@ -14,3 +14,11 @@
     
         irb> LiqrrdMetal.sorted_with_scores( "gkis", %w[ Tegra_Keenhigh_Support gk10x-DFT-insertion ] )
         #=> [[0.3681818181818182, "Tegra_Keenhigh_Support"], [0.5052631578947367, "gk10x-DFT-insertion"]]
+
+* Early occurrences of leading letters are favored over larger chunks:
+
+        irb> puts LiqrrdMetal.score_with_parts( "low", "Follow" ).last.map(&:to_html).join
+        #=> Fo<span class='match'>l</span>l<span class='match'>ow</span>
+
+  Perhaps try (horror of horrors) creating n variations, splitting into smaller and smaller chunks, before ending
+  at `/(e).*?(a).*?(c).*?(h).*?(l).*?(e).*?(t).*?(t).*?(e).*?(r)/i`?

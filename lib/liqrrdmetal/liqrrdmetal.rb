@@ -89,6 +89,7 @@ module LiqrrdMetal
 	BUFFER               = [0.15] #:nodoc:
 	TRAILING             = [0.20] #:nodoc:
 	NO_MATCH             = [1.00] #:nodoc:
+	RE_CACHE             = {}     #:nodoc:
 
 	# Used to identify substrings and whether or not they were matched directly by the search string.
 	class MatchPart
@@ -163,13 +164,19 @@ module LiqrrdMetal
 	#  #=> ["<span class='match'>s</span>cottadams@aol<span class='match'>.com</span>",
 	#  #=>  "late<span class='match'>s</span>how@pipeline<span class='match'>.com</span>"]
 	def results_by_score( search, objects, score_threshold=1.0 )
-		objects.each{ |o|
-			o.extend MatchResult
-			o.liqrrd_match = yield(o)
-			o.liqrrd_score, o.liqrrd_parts = score_with_parts(search,o.liqrrd_match)
-		}.select{ |o|
-			o.liqrrd_score < score_threshold
-		}.sort_by{ |o|
+		re = RE_CACHE[search] ||= /#{[*search.chars].join('.*?')}/i
+		objects.map{ |o|
+			m = yield(o)
+			if m=~re
+				score,parts = score_with_parts(search,m)
+				if score<score_threshold
+					o.extend MatchResult
+					o.liqrrd_match = m
+					o.liqrrd_score, o.liqrrd_parts = score,parts
+					o
+				end				
+			end
+		}.compact.sort_by{ |o|
 			[ o.liqrrd_score, o.liqrrd_match ]
 		}
 	end
@@ -186,11 +193,15 @@ module LiqrrdMetal
   #  #=> _Foo_ _Bar_
   #  #=> _Fo_r the L_o_ve of _B_ig C_ar_s
 	def parts_by_score( search, actuals, score_threshold=1.0 )
+		re = RE_CACHE[search] ||= /#{[*search.chars].join('.*?')}/i
 		actuals.map{ |actual|
-			[ actual, *score_with_parts(search,actual) ]
-		}.select{ |actual,score,parts|
-			score < score_threshold
-		}.sort_by{ |actual,score,parts|
+			if actual=~re
+				score,parts = score_with_parts(search,actual)
+				if score<score_threshold
+					[ actual, score, parts ]
+				end
+			end
+		}.compact.sort_by{ |actual,score,parts|
 			[ score, actual ]
 		}.map{ |actual,score,parts|
 			parts
@@ -208,9 +219,10 @@ module LiqrrdMetal
 	#  p parts.map(&:to_html).join
 	#  #=> "A <span class='match'>Foo</span>l in Lo<span class='match'>v</span>e"
 	def score_with_parts( search, actual )
+		re = RE_CACHE[search] ||= /#{[*search.chars].join('.*?')}/i
 		if search.length==0
 			[ TRAILING[0], [MatchPart.new(actual)] ]
-		elsif search.length > actual.length
+		elsif (search.length > actual.length) || (search !~ re)
 			[ NO_MATCH[0], [MatchPart.new(actual)] ]
 		else
 			values = scores( search, actual )
@@ -233,9 +245,10 @@ module LiqrrdMetal
 	# Return a score for matching the search term against the actual text.
 	# A score of <code>1.0</code> indicates no match. A score of <code>0.0</code> is a perfect match.
 	def score( search, actual )
+		re = RE_CACHE[search] ||= /#{[*search.chars].join('.*?')}/i
 		if search.length==0
 			TRAILING[0]
-		elsif search.length > actual.length
+		elsif (search.length > actual.length) || (search !~ re)
 			NO_MATCH[0]
 		else
 			values = scores( search, actual )
@@ -271,5 +284,3 @@ module LiqrrdMetal
 		scores
 	end
 end
-
-
